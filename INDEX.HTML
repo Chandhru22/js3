@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Guess The Number</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            color: white;
+        }
+
+        /* Animated gradient background */
+        body::before {
+            content: "";
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(135deg, #ff4e50, #f9d423, #24c6dc, #514a9d);
+            background-size: 400% 400%;
+            animation: gradientMove 15s ease infinite;
+            z-index: -3;
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Glowing circles */
+        .circle1, .circle2 {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.7;
+            z-index: -2;
+        }
+
+        .circle1 {
+            width: 400px;
+            height: 400px;
+            background: #ff4e50;
+            top: -80px;
+            left: -80px;
+        }
+
+        .circle2 {
+            width: 500px;
+            height: 500px;
+            background: #24c6dc;
+            bottom: -100px;
+            right: -100px;
+        }
+
+        /* Glassmorphism card */
+        .container {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 35px;
+            border-radius: 18px;
+            width: 350px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.2);
+            animation: fadeIn 1s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        input {
+            width: 90%;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            outline: none;
+            font-size: 18px;
+            margin-bottom: 15px;
+            text-align: center;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            box-shadow: 0 0 10px #fff;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #ffffff;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #eeeeee;
+            transform: scale(1.05);
+        }
+
+        p {
+            margin-top: 15px;
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        /* Confetti style */
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: yellow;
+            animation: fall 2.5s linear forwards;
+            z-index: 10;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-50px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(800px) rotate(360deg); opacity: 0; }
+        }
+
+        /* Full-screen Win Overlay */
+        .win-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            z-index: 999;
+            animation: fadeWin 0.8s ease forwards;
+            text-align: center;
+        }
+
+        @keyframes fadeWin {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .win-title {
+            font-size: 70px;
+            font-weight: 700;
+            text-shadow: 0 0 25px #fff;
+            animation: glowText 2s infinite alternate ease-in-out;
+        }
+
+        @keyframes glowText {
+            from { text-shadow: 0 0 10px #fff; }
+            to { text-shadow: 0 0 35px #ffd700, 0 0 60px #ff4e50; }
+        }
+
+        .win-msg {
+            font-size: 26px;
+            margin-top: 15px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="circle1"></div>
+<div class="circle2"></div>
+
+<div class="container">
+    <h1>Guess The Number</h1>
+
+    <input id="Guessnumber" placeholder="Enter 1 - 10">
+    <button id="checkBtn" onclick="change()">Check</button>
+
+    <p id="result">You Are Wrong / Right</p>
+    <p id="score">Score : 10</p>
+</div>
+
+<!-- FULL SCREEN WIN MESSAGE -->
+<div id="winScreen" class="win-screen">
+    <div class="win-title">🎉 YOU WIN! 🎉</div>
+    <div class="win-msg">Amazing! You guessed the correct number!</div>
+</div>
+
+<script>
+    var guessnumber = document.getElementById("Guessnumber")
+    var result = document.getElementById("result")
+    var score = document.getElementById("score")
+    var checkBtn = document.getElementById("checkBtn")
+    var randomnumber = Math.floor(Math.random()*10)+1
+    var total = 10
+
+    // Press Enter to check
+    guessnumber.addEventListener("keypress", function(event){
+        if(event.key === "Enter"){
+            checkBtn.click();
+        }
+    });
+
+    // Confetti celebration
+    function startConfetti() {
+        for (let i = 0; i < 60; i++) {
+            let confetti = document.createElement("div");
+            confetti.classList.add("confetti");
+            confetti.style.backgroundColor = `hsl(${Math.random()*360}, 100%, 50%)`;
+            confetti.style.left = Math.random()*window.innerWidth + "px";
+            document.body.appendChild(confetti);
+
+            setTimeout(() => confetti.remove(), 2600);
+        }
+    }
+
+    // Game logic
+    function change(){
+        var enternumber = Number(guessnumber.value)
+
+        if(randomnumber == enternumber){
+            result.textContent = "🎉 Right!"
+            startConfetti();
+
+            // Show full-screen win message
+            document.getElementById("winScreen").style.display = "flex";
+
+        } else {
+            result.textContent = "Wrong"
+            total = total - 1
+            score.textContent = "Score : " + total
+        }
+    }
+</script>
+
+</body>
+</html>
